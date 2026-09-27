@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Implementasi Chatbot Berbasis AI dalam Meningkatkan Interaksi Pengguna</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #E8E3D5;
+    --bg-panel: #F6F3EA;
+    --ink: #24231C;
+    --ink-soft: #56543F;
+    --line: rgba(36,35,28,0.14);
+    --accent: #33449E;
+    --accent-ink: #F6F3EA;
+    --amber: #B5792A;
+    --bubble-user: #33449E;
+    --bubble-user-ink: #F6F3EA;
+    --bubble-bot: #F6F3EA;
+    --bubble-bot-ink: #24231C;
+    --shadow: 0 1px 0 rgba(36,35,28,0.06);
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15161A;
+      --bg-panel: #1D1E23;
+      --ink: #ECE8DC;
+      --ink-soft: #A6A290;
+      --line: rgba(236,232,220,0.14);
+      --accent: #8B98E8;
+      --accent-ink: #15161A;
+      --amber: #E0A94A;
+      --bubble-user: #8B98E8;
+      --bubble-user-ink: #15161A;
+      --bubble-bot: #1D1E23;
+      --bubble-bot-ink: #ECE8DC;
+      --shadow: 0 1px 0 rgba(0,0,0,0.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15161A;
+    --bg-panel: #1D1E23;
+    --ink: #ECE8DC;
+    --ink-soft: #A6A290;
+    --line: rgba(236,232,220,0.14);
+    --accent: #8B98E8;
+    --accent-ink: #15161A;
+    --amber: #E0A94A;
+    --bubble-user: #8B98E8;
+    --bubble-user-ink: #15161A;
+    --bubble-bot: #1D1E23;
+    --bubble-bot-ink: #ECE8DC;
+    --shadow: 0 1px 0 rgba(0,0,0,0.3);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  img, svg { max-width: 100%; }
+
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- Nav ---------- */
+  .topbar {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: 920px; margin: 0 auto; padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.02em;
+  }
+  .topbar-mark { display: flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; }
+  .topbar-mark .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
+  .topbar-nav { display: flex; gap: 20px; }
+  .topbar-nav a { text-decoration: none; color: var(--ink-soft); }
+  .topbar-nav a:hover { color: var(--accent); }
+  @media (max-width: 640px) { .topbar-nav { display: none; } }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: 64px 0 56px; }
+  .hero-grid {
+    display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 48px; align-items: start;
+  }
+  @media (max-width: 800px) { .hero-grid { grid-template-columns: 1fr; gap: 36px; } }
+
+  .kicker {
+    font-family: var(--mono); font-size: 0.78rem; color: var(--ink-soft);
+    margin-bottom: 18px; max-width: 46ch;
+  }
+  h1 {
+    font-family: var(--serif); font-weight: 500; font-size: clamp(1.9rem, 4.2vw, 2.7rem);
+    line-height: 1.15; letter-spacing: -0.01em; max-width: 18ch;
+  }
+  .authors { margin-top: 22px; font-size: 0.95rem; color: var(--ink-soft); max-width: 42ch; }
+  .authors strong { color: var(--ink); font-weight: 600; }
+  .authors .affil { display: block; margin-top: 4px; font-size: 0.88rem; }
+  .authors .mail { display: inline-block; margin-top: 8px; font-family: var(--mono); font-size: 0.82rem; color: var(--accent); text-decoration: none; }
+
+  /* chat mockup */
+  .chatcard {
+    background: var(--bg-panel); border: 1px solid var(--line); border-radius: 18px;
+    padding: 20px; box-shadow: var(--shadow);
+  }
+  .chatcard-head {
+    display: flex; align-items: center; gap: 10px; font-family: var(--mono);
+    font-size: 0.72rem; color: var(--ink-soft); padding-bottom: 14px; margin-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); animation: pulse 1.8s ease-in-out infinite; flex: none; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .bubble-row { display: flex; margin-bottom: 10px; opacity: 0; transform: translateY(6px); animation: rise 0.5s ease forwards; }
+  .bubble-row.bot { justify-content: flex-start; }
+  .bubble-row.user { justify-content: flex-end; }
+  .bubble-row:nth-child(2) { animation-delay: 0.15s; }
+  .bubble-row:nth-child(3) { animation-delay: 0.9s; }
+  .bubble-row:nth-child(4) { animation-delay: 1.5s; }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+  .bubble {
+    max-width: 78%; padding: 9px 13px; border-radius: 14px; font-size: 0.88rem;
+  }
+  .bubble.bot { background: var(--bubble-bot); color: var(--bubble-bot-ink); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+  .bubble.user { background: var(--bubble-user); color: var(--bubble-user-ink); border-bottom-right-radius: 4px; }
+  .typing { display: inline-flex; gap: 4px; padding: 4px 2px; }
+  .typing span { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-soft); animation: bounce 1s infinite ease-in-out; }
+  .typing span:nth-child(2) { animation-delay: 0.15s; }
+  .typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes bounce { 0%,80%,100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-3px); opacity: 1; } }
+  .chat-timer {
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.72rem; color: var(--ink-soft);
+    opacity: 0; animation: rise 0.5s ease forwards; animation-delay: 2.1s;
+  }
+  .chat-timer b { color: var(--amber); font-weight: 600; }
+
+  /* ---------- Stat strip ---------- */
+  .stats {
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    padding: 40px 0;
+  }
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  @media (max-width: 700px) { .stats-grid { grid-template-columns: 1fr; gap: 26px; } }
+  .stat-num { font-family: var(--mono); font-size: clamp(2rem, 5vw, 2.6rem); font-weight: 500; color: var(--accent); line-height: 1; }
+  .stat-label { margin-top: 8px; font-size: 0.9rem; color: var(--ink-soft); max-width: 26ch; }
+
+  /* ---------- Sections ---------- */
+  section.block { padding: 56px 0; border-bottom: 1px solid var(--line); }
+  section.block:last-of-type { border-bottom: none; }
+  .eyebrow { font-family: var(--mono); font-size: 0.75rem; color: var(--amber); margin-bottom: 12px; }
+  h2 {
+    font-family: var(--serif); font-weight: 500; font-size: clamp(1.4rem, 3vw, 1.8rem);
+    margin-bottom: 18px; max-width: 24ch;
+  }
+  .prose { max-width: 68ch; color: var(--ink-soft); font-size: 1rem; }
+  .prose + .prose { margin-top: 14px; }
+
+  /* abstract toggle */
+  .toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; margin-bottom: 20px; }
+  .toggle button {
+    border: none; background: transparent; font-family: var(--mono); font-size: 0.76rem;
+    padding: 6px 16px; border-radius: 999px; cursor: pointer; color: var(--ink-soft);
+  }
+  .toggle button.active { background: var(--accent); color: var(--accent-ink); }
+  .abs-panel { display: none; }
+  .abs-panel.active { display: block; }
+
+  /* findings cards */
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 8px; }
+  @media (max-width: 700px) { .cards { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--bg-panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px;
+  }
+  .card .num { font-family: var(--mono); font-size: 1.9rem; color: var(--accent); }
+  .card .desc { margin-top: 8px; font-size: 0.9rem; color: var(--ink-soft); }
+
+  /* keywords */
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip {
+    font-family: var(--mono); font-size: 0.78rem; padding: 7px 14px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--ink-soft);
+  }
+
+  /* footer */
+  footer { padding: 40px 0 calc(40px + env(safe-area-inset-bottom, 0px)); }
+  .footer-grid { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px; font-size: 0.85rem; color: var(--ink-soft); }
+  .footer-grid .cite { max-width: 52ch; font-family: var(--mono); font-size: 0.76rem; line-height: 1.7; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bubble-row, .chat-timer, .pulse, .typing span { animation: none !important; opacity: 1 !important; transform: none !important; }
+  }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="topbar-mark" href="#top"><span class="dot" aria-hidden="true"></span>chatbot / studi kasus</a>
+    <nav class="topbar-nav" aria-label="Navigasi bagian">
+      <a href="#abstrak">Abstrak</a>
+      <a href="#temuan">Temuan</a>
+      <a href="#kesimpulan">Kesimpulan</a>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <header class="hero" id="top">
+    <div class="hero-grid">
+      <div>
+        <p class="kicker">Studi kuantitatif · Universitas PGRI Semarang</p>
+        <h1>Implementasi Chatbot Berbasis AI dalam Meningkatkan Interaksi Pengguna pada Platform Web</h1>
+        <p class="authors">
+          <strong>Dhyta Nelfara Nasya</strong> &amp; <strong>Setyoningsih Wibowo</strong>
+          <span class="affil">Program Studi Informatika, Universitas PGRI Semarang, Kota Semarang</span>
+          <a class="mail" href="mailto:faraanacaa@gmail.com">faraanacaa@gmail.com</a>
+        </p>
+      </div>
+
+      <div class="chatcard" role="img" aria-label="Simulasi percakapan chatbot yang menunjukkan waktu respons singkat">
+        <div class="chatcard-head"><span class="pulse" aria-hidden="true"></span>percakapan langsung</div>
+        <div class="bubble-row bot"><div class="bubble bot">Halo, ada yang bisa saya bantu hari ini?</div></div>
+        <div class="bubble-row user"><div class="bubble user">Pesanan saya belum sampai, bisa dicek?</div></div>
+        <div class="bubble-row bot"><div class="bubble bot"><span class="typing"><span></span><span></span><span></span></span></div></div>
+        <div class="bubble-row bot"><div class="bubble bot">Tentu, pesanan Anda sedang dalam perjalanan dan tiba besok.</div></div>
+        <div class="chat-timer"><span>waktu respons</span><span><b>30 detik</b> · dari rata-rata 3 menit</span></div>
+      </div>
+    </div>
+  </header>
+
+  <section class="stats" aria-label="Ringkasan hasil utama">
+    <div class="stats-grid">
+      <div>
+        <div class="stat-num">75%</div>
+        <p class="stat-label">pengguna merasa puas dengan layanan chatbot</p>
+      </div>
+      <div>
+        <div class="stat-num">82%</div>
+        <p class="stat-label">pengguna menilai chatbot mudah digunakan</p>
+      </div>
+      <div>
+        <div class="stat-num">3m → 30d</div>
+        <p class="stat-label">waktu respons rata-rata menurun drastis</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="abstrak">
+    <p class="eyebrow">Abstrak</p>
+    <div class="toggle" role="tablist" aria-label="Pilih bahasa abstrak">
+      <button type="button" class="active" role="tab" aria-selected="true" data-lang="id">Bahasa Indonesia</button>
+      <button type="button" role="tab" aria-selected="false" data-lang="en">English</button>
+    </div>
+    <div class="abs-panel active" data-panel="id">
+      <p class="prose">Chatbot berbasis kecerdasan buatan (AI) telah berkembang menjadi metode yang lebih umum untuk meningkatkan interaksi pengguna di platform web. Dampak chatbot terhadap pengalaman pengguna diteliti dalam hal kepuasan, kemudahan penggunaan, keterlibatan, waktu respons, dan tingkat penyelesaian masalah.</p>
+      <p class="prose">Selama periode implementasi chatbot, sepuluh pengguna disurvei untuk melakukan analisis data kuantitatif. Studi menunjukkan bahwa 75% pengguna chatbot merasa puas dengan layanan mereka, dan 82% menganggap chatbot mudah digunakan, serta menurunkan waktu respons rata-rata dari tiga menit menjadi tiga puluh detik.</p>
+      <p class="prose">Temuan ini memberikan dasar yang kuat untuk merekomendasikan penggunaan chatbot dalam meningkatkan layanan pelanggan pada platform web. Meskipun demikian, penelitian lebih lanjut diperlukan untuk mengoptimalkan teknologi chatbot dan mengatasi tantangan teknis serta operasional yang mungkin timbul.</p>
+    </div>
+    <div class="abs-panel" data-panel="en">
+      <p class="prose">Artificial intelligence (AI)-based chatbots have evolved into a more common method of improving user interaction on web platforms. The impact of chatbots on user experience was investigated in terms of satisfaction, ease of use, engagement, response time, and problem resolution rate.</p>
+      <p class="prose">During the chatbot implementation period, ten users were surveyed to conduct quantitative data analysis. The study showed that 75% of chatbot users were satisfied with their service, and 82% found the chatbot easy to use, as well as lowering the average response time from three minutes to thirty seconds.</p>
+      <p class="prose">These findings provide a strong basis for recommending the use of chatbots in improving customer service on web platforms. Nonetheless, further research is needed to optimize chatbot technology and address technical and operational challenges that may arise.</p>
+    </div>
+  </section>
+
+  <section class="block">
+    <p class="eyebrow">Latar Belakang</p>
+    <h2>Interaksi pelanggan sebagai inti bisnis digital</h2>
+    <p class="prose">Berbagai aspek kehidupan manusia telah diubah oleh teknologi di era digital saat ini, termasuk cara kita berinteraksi dengan platform web. Chatbot berbasis Artificial Intelligence adalah salah satu inovasi baru yang semakin populer &mdash; program komputer yang mampu meniru percakapan manusia melalui suara atau teks.</p>
+    <p class="prose">Berbagai aplikasi, mulai dari asisten virtual, layanan pelanggan, hingga alat bantu penjualan, telah menggunakan teknologi ini. Banyak bisnis terdorong mengadopsi chatbot berbasis AI dengan tujuan meningkatkan interaksi pengguna, karena interaksi yang efektif dan efisien dengan pelanggan sangat penting untuk membangun hubungan yang baik.</p>
+  </section>
+
+  <section class="block" id="temuan">
+    <p class="eyebrow">Temuan Utama</p>
+    <h2>Hasil survei kuantitatif</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="num">75%</div>
+        <p class="desc">responden menyatakan puas terhadap layanan chatbot yang diterapkan.</p>
+      </div>
+      <div class="card">
+        <div class="num">82%</div>
+        <p class="desc">responden menilai chatbot mudah digunakan tanpa perlu panduan tambahan.</p>
+      </div>
+      <div class="card">
+        <div class="num">↓ 83%</div>
+        <p class="desc">penurunan waktu respons rata-rata, dari 3 menit menjadi 30 detik.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <p class="eyebrow">Kata Kunci</p>
+    <div class="chips">
+      <span class="chip">Chatbot</span>
+      <span class="chip">Kepuasan Pengguna</span>
+      <span class="chip">Kemudahan Penggunaan</span>
+      <span class="chip">Kecerdasan Buatan</span>
+      <span class="chip">Waktu Respons</span>
+    </div>
+  </section>
+
+  <section class="block" id="kesimpulan">
+    <p class="eyebrow">Kesimpulan &amp; Rekomendasi</p>
+    <h2>Dasar yang kuat, dengan ruang untuk penyempurnaan</h2>
+    <p class="prose">Temuan ini memberikan dasar yang kuat untuk merekomendasikan penggunaan chatbot dalam meningkatkan layanan pelanggan pada platform web. Sistem chatbot cerdas telah menjadi alat yang sangat diperlukan bagi bisnis yang ingin meningkatkan efisiensi sekaligus kepuasan penggunanya.</p>
+    <p class="prose">Meskipun demikian, penelitian lebih lanjut diperlukan untuk mengoptimalkan teknologi chatbot dan mengatasi tantangan teknis serta operasional yang mungkin timbul di lapangan.</p>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <div class="footer-grid">
+    <p class="cite">Nasya, D. N., &amp; Wibowo, S. Implementasi Chatbot Berbasis AI dalam Meningkatkan Interaksi Pengguna pada Platform Web. Informatika, Universitas PGRI Semarang.</p>
+    <p>Kontak &mdash; <a href="mailto:faraanacaa@gmail.com">faraanacaa@gmail.com</a></p>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.toggle button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var lang = btn.getAttribute('data-lang');
+      document.querySelectorAll('.toggle button').forEach(function (b) {
+        b.classList.toggle('active', b === btn);
+        b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+      });
+      document.querySelectorAll('.abs-panel').forEach(function (p) {
+        p.classList.toggle('active', p.getAttribute('data-panel') === lang);
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
